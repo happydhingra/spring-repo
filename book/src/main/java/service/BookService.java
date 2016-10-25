@@ -10,4 +10,5 @@ Customer update(Customer customer);
 Customer getCustomerById(int id);
 List<Customer> getCustomerByName(String id);
 public void deleteCustomer(int id);
+Customer checkDashBoard(int id);
 }

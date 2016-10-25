@@ -39,6 +39,12 @@ public class CustomerController {
 
 	}
 
+	@RequestMapping(value = "/exc/{id}", method = RequestMethod.GET, produces = "application/json")
+	public ResponseEntity<Customer> testDashboard(@PathVariable int id) {
+		return ResponseEntity.ok(bookService.checkDashBoard(id));
+
+	}
+	
 	@RequestMapping(value = "/customerByName/{name}", method = RequestMethod.GET, produces = "application/json")
 	public ResponseEntity<List<Customer>> getCustomerByName(@PathVariable String name) {
 		return ResponseEntity.ok(bookService.getCustomerByName(name));
@@ -51,6 +57,7 @@ public class CustomerController {
 		return ResponseEntity.ok(bookService.save(customer));
 
 	}
+	
 
 	@RequestMapping(value = "/deleteCust/{id}", method = RequestMethod.POST)
 	public void deleteCustomer(@PathVariable int id) {

@@ -33,6 +33,12 @@ public class BookServiceImpl implements BookService{
 		return customerRepository.findById(id);
 	}
 
+	 @Override
+	 @HystrixCommand(fallbackMethod = "defaultFindById")
+	public Customer checkDashBoard(int id) {
+		 throw new RuntimeException();
+	}
+	 
 	 public Customer defaultFindById(int id) {
 		 Customer customer=new Customer();
 		 customer.setId(id);
