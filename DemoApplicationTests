@@ -16,20 +16,99 @@ import org.junit.Test;
 import com.example.demo.exception.BreakException;
 
 public class DemoApplicationTests {
-	private List<String> foundFile=new ArrayList<>();
+	private List<String> foundFile = new ArrayList<>();
+	private List<String> notFoundFile = new ArrayList<>();
+	private String result;
 
 	@Test
 	public void main() throws IOException {
 		Path filePath = Paths.get("src\\main\\java\\com\\example\\demo");
 		Path modelPath = Paths.get("src\\main\\java\\com\\example\\demo\\model");
 		Stream<File> stream2 = Arrays.stream(modelPath.toFile().listFiles());
+
 		stream2.forEach(file -> {
 			String fileName = file.getPath().split("src.main.java.")[1].replaceAll(".java", "").replace('\\', '.');
 			Stream<File> stream = Arrays.stream(filePath.toFile().listFiles())
 					.filter(file2 -> !file2.getName().contains("model"));
 			printName(stream, fileName);
 		});
+		Arrays.stream(modelPath.toFile().listFiles()).forEach(file -> {
+			Stream<File> modelStream = Arrays.stream(modelPath.toFile().listFiles());
+			Stream<File> modelStream2 = Arrays.stream(modelPath.toFile().listFiles());
+			String fileName = file.getPath().split("src.main.java.")[1].replaceAll(".java", "").replace('\\', '.');
+			if (!foundFile.contains(fileName)) {
+				List<String> tempList = new ArrayList<>();
+				tempList.add(fileName);
+				findInModel(modelStream, fileName);
+				addToList(modelStream2, fileName, tempList, result);
+			} else {
+				System.out.println(foundFile.toString());
+			}
+		});
+		foundFile.forEach(f -> System.out.println("Found::::::" + f));
+		notFoundFile.forEach(f -> System.out.println("Not found:::" + f));
+	}
 
+	private void addToList(Stream<File> modelStream, String fileName, List<String> tempList, String modelFound) {
+		Path modelPath = Paths.get("src\\main\\java\\com\\example\\demo\\model");
+		Stream<File> stream2 = Arrays.stream(modelPath.toFile().listFiles());
+		if (modelFound == null) {
+			notFoundFile.addAll(tempList);
+			tempList.clear();
+		} else {
+			if (foundFile.contains(modelFound)) {
+				foundFile.addAll(tempList);
+				tempList.clear();
+			} else if (notFoundFile.contains(modelFound)) {
+				notFoundFile.addAll(tempList);
+				tempList.clear();
+			} else {
+				findInModel(modelStream, fileName);
+				addToList(stream2, fileName, tempList, result);
+
+			}
+		}
+	}
+
+	private void findInModel(Stream<File> modelStream, String str) {
+		result = null;
+		try {
+			modelStream.forEach(file -> {
+				if (file.isFile()) {
+					try {
+						if (checkFileExists(file.getPath(), str)) {
+							result = file.getPath().split("src.main.java.")[1].replaceAll(".java", "").replace('\\',
+									'.');
+							;
+							throw new BreakException();
+						}
+
+					} catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} else {
+					printName(Arrays.stream(file.listFiles()), str);
+				}
+			});
+		} catch (BreakException e) {
+			// TODO: handle exception
+		}
+	}
+
+	private boolean checkFileExists(String path, String str) throws FileNotFoundException {
+		boolean found = false;
+		str = "private " + str.substring(str.lastIndexOf('.') + 1, str.length());
+		Scanner scan = new Scanner(new File(path));
+		while (scan.hasNext()) {
+			String line = scan.nextLine().toString();
+			if (line.contains(str)) {
+				found = true;
+				break;
+			}
+
+		}
+		return found;
 	}
 
 	private void printName(Stream<File> stream, String matcher) {
@@ -39,8 +118,8 @@ public class DemoApplicationTests {
 					System.out.println(file.getName());
 					try {
 						if (parseFile(file.getPath(), matcher)) {
-							foundFile.add(file.getName());
-							System.out.println("File found::"+matcher);
+							foundFile.add(matcher);
+							System.out.println("File found::" + matcher);
 							throw new BreakException();
 						}
 					} catch (FileNotFoundException e) {
