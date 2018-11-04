@@ -1,0 +1,72 @@
+package com.example.demo;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
+import java.util.stream.Stream;
+
+import org.junit.Test;
+
+import com.example.demo.exception.BreakException;
+
+public class DemoApplicationTests {
+	private List<String> foundFile=new ArrayList<>();
+
+	@Test
+	public void main() throws IOException {
+		Path filePath = Paths.get("src\\main\\java\\com\\example\\demo");
+		Path modelPath = Paths.get("src\\main\\java\\com\\example\\demo\\model");
+		Stream<File> stream2 = Arrays.stream(modelPath.toFile().listFiles());
+		stream2.forEach(file -> {
+			String fileName = file.getPath().split("src.main.java.")[1].replaceAll(".java", "").replace('\\', '.');
+			Stream<File> stream = Arrays.stream(filePath.toFile().listFiles())
+					.filter(file2 -> !file2.getName().contains("model"));
+			printName(stream, fileName);
+		});
+
+	}
+
+	private void printName(Stream<File> stream, String matcher) {
+		try {
+			stream.forEach(file -> {
+				if (file.isFile()) {
+					System.out.println(file.getName());
+					try {
+						if (parseFile(file.getPath(), matcher)) {
+							foundFile.add(file.getName());
+							System.out.println("File found::"+matcher);
+							throw new BreakException();
+						}
+					} catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				} else if (!file.getName().contains("model")) {
+					printName(Arrays.stream(file.listFiles()), matcher);
+				}
+			});
+		} catch (BreakException e) {
+			// TODO: handle exception
+		}
+	}
+
+	public boolean parseFile(String fileName, String searchStr) throws FileNotFoundException {
+		boolean found = false;
+		Scanner scan = new Scanner(new File(fileName));
+		while (scan.hasNext()) {
+			String line = scan.nextLine().toString();
+			if (line.contains(searchStr)) {
+				found = true;
+				break;
+			}
+
+		}
+		return found;
+	}
+}
